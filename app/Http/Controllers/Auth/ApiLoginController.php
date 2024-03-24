@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ApiLogin\CallbackRequest;
+use App\Http\Requests\ApiLogin\LoginRequest;
 use App\Services\CallbackApiLoginService;
 use Exception;
 use Illuminate\Support\Str;
@@ -20,7 +21,6 @@ class ApiLoginController extends Controller
             'response_type' => 'code',
             'scope'         => '',
             'state'         => $state,
-            // 'prompt' => '', // "none", "consent", or "login",
         ]);
 
         $baseApiAuth = env("API_AUTH_URL");
@@ -33,7 +33,7 @@ class ApiLoginController extends Controller
         try {
             $service = new CallbackApiLoginService();
 
-            if ($service->run($request)) {
+            if ($service->runAuthorizationCode($request)) {
                 return redirect()->route("dashboard");
             }
 
@@ -43,4 +43,22 @@ class ApiLoginController extends Controller
             return back()->with("error", $exception->getMessage());
         }
     }
+
+    public function grantPassword(LoginRequest $request)
+    {
+        try {
+            $service = new CallbackApiLoginService();
+
+            if ($service->runPassword($request)) {
+                return redirect()->route("dashboard");
+            }
+
+            throw new Exception("Erro ao validar autorização!");
+        }
+        catch (Exception $exception) {
+            dd($exception);
+            return back()->with("error", $exception->getMessage());
+        }
+    }
+
 }

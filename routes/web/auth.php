@@ -26,5 +26,7 @@ Route::controller(ApiLoginController:: class)->group(function () {
 
     Route::get('auth/callback', "callback")->name("callback");
 
+    Route::post('auth/grantPassword', "grantPassword")->name("grantPassword");
+
 });
 
