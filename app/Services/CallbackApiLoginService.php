@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
-use App\Http\Requests\ApiLogin\CallbackRequest;
-use App\Http\Requests\ApiLogin\LoginRequest;
+use App\Http\Requests\ApiLogin\GrantAuthorizationCodeRequest;
+use App\Http\Requests\ApiLogin\GrantClientCredentialsRequest;
+use App\Http\Requests\ApiLogin\GrantPasswordRequest;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Client\Response;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\Http;
 
 class CallbackApiLoginService
 {
-    public function runAuthorizationCode(CallbackRequest $request)
+    public function runAuthorizationCode(GrantAuthorizationCodeRequest $request)
     {
         $data         = $request->validated();
         $baseApiAuth  = env("API_AUTH_URL");
@@ -30,7 +31,7 @@ class CallbackApiLoginService
         throw new Exception("Erro ao redirecionar para Dashboard!");
     }
 
-    public function runPassword(LoginRequest $request)
+    public function runPassword(GrantPasswordRequest $request)
     {
         $data         = $request->validated();
         $response     = $this->authorizationResponsePassword($data);
@@ -44,6 +45,19 @@ class CallbackApiLoginService
         }
 
         throw new Exception("Erro ao redirecionar para Dashboard!");
+    }
+
+    public function runClientCredentials(GrantClientCredentialsRequest $request)
+    {
+        $data = $request->validated();
+
+        $response = $this->authorizationResponseClientCredentials($data);
+
+        if(isset($response->json()["access_token"])) {
+            return $response->json();
+        }
+
+        throw new Exception("Erro ao fazer login como cliente!");
     }
 
     private function authorizationResponse($baseApiAuth, $data): Response
@@ -65,6 +79,16 @@ class CallbackApiLoginService
             'client_secret' => $data['client_secret'],
             'username'      => $data['username'],
             'password'      => $data['password'],
+            'scope'         => '',
+        ]);
+    }
+
+    private function authorizationResponseClientCredentials($data)
+    {
+        return Http::asForm()->post("{$data['base_url']}/oauth/token", [
+            'grant_type'    => 'client_credentials',
+            'client_id'     => $data['client_id'],
+            'client_secret' => $data['client_secret'],
             'scope'         => '',
         ]);
     }

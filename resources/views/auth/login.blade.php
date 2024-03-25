@@ -50,4 +50,17 @@
             </a>
         </div>
     </form>
+
+    <hr>
+
+    <form
+        method="POST"
+        action="{{ route("grantClientCredentials") }}"
+        style="margin-top: 10px;"
+    >
+        @csrf
+        <x-primary-button class="ms-3">
+            {{ __('Logar com Client') }}
+        </x-primary-button>
+    </form>
 </x-guest-layout>

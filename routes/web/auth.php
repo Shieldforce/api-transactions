@@ -22,11 +22,17 @@ Route::middleware('auth')
 
 Route::controller(ApiLoginController:: class)->group(function () {
 
-    Route::get('auth/redirect',"redirect")->name("redirect");
+    Route::get('auth/redirect',"redirect")
+         ->name("redirect");
 
-    Route::get('auth/callback', "callback")->name("callback");
+    Route::get('auth/callback', "callback")
+         ->name("callback");
 
-    Route::post('auth/grantPassword', "grantPassword")->name("grantPassword");
+    Route::post('auth/grantPassword', "grantPassword")
+         ->name("grantPassword");
+
+    Route::post('auth/grantClientCredentials', "grantClientCredentials")
+         ->name("grantClientCredentials");
 
 });
 

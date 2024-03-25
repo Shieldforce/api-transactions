@@ -4,7 +4,7 @@ namespace App\Http\Requests\ApiLogin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CallbackRequest extends FormRequest
+class GrantAuthorizationCodeRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

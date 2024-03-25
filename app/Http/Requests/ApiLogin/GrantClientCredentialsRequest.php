@@ -4,7 +4,7 @@ namespace App\Http\Requests\ApiLogin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class LoginRequest extends FormRequest
+class GrantClientCredentialsRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,9 +14,6 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email'         => ['required', 'string', 'email'],
-            'password'      => ['required', 'string'],
-            'username'      => ['required', 'string'],
             'client_id'     => ['required', 'string'],
             'client_secret' => ['required', 'string'],
             'base_url'      => ['required', 'string'],
@@ -26,9 +23,8 @@ class LoginRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            "username"      => $this->email ?? null,
-            "client_id"     => env("CLIENT_GTP_ID") ?? null,
-            "client_secret" => env("CLIENT_GTP_SECRECT") ?? null,
+            "client_id"     => env("CLIENT_GTCC_ID") ?? null,
+            "client_secret" => env("CLIENT_GTCC_SECRECT") ?? null,
             "base_url"      => env("API_AUTH_URL") ?? null,
         ]);
     }
