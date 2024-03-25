@@ -20,12 +20,13 @@ class CallbackApiLoginService
         $baseApiAuth  = env("API_AUTH_URL");
         $response     = $this->authorizationResponse($baseApiAuth, $data);
         $responseUser = $this->userResponse($baseApiAuth, $response);
-        $this->authUser($this->userSave($responseUser));
+        $user         = $this->userSave($responseUser);
+        $this->authUser($user);
 
         if (Auth::check()) {
-            #TODO: implements scopes (ACL)
+            $this->abilitiesSave($this->listScopes($response));
 
-            return redirect()->route("dashboard");
+            return redirect()->route("/dashboard");
         }
 
         throw new Exception("Erro ao redirecionar para Dashboard!");
@@ -36,12 +37,13 @@ class CallbackApiLoginService
         $data         = $request->validated();
         $response     = $this->authorizationResponsePassword($data);
         $responseUser = $this->userResponse($data['base_url'], $response);
-        $this->authUser($this->userSave($responseUser));
+        $user         = $this->userSave($responseUser);
+        $this->authUser($user);
 
         if (Auth::check()) {
-            #TODO: implements scopes (ACL)
+            $this->abilitiesSave($this->listScopes($response));
 
-            return redirect()->route("dashboard");
+            return redirect()->route("/dashboard");
         }
 
         throw new Exception("Erro ao redirecionar para Dashboard!");
@@ -49,12 +51,11 @@ class CallbackApiLoginService
 
     public function runClientCredentials(GrantClientCredentialsRequest $request)
     {
-        $data = $request->validated();
-
+        $data     = $request->validated();
         $response = $this->authorizationResponseClientCredentials($data);
 
-        if(isset($response->json()["access_token"])) {
-            return $response->json();
+        if (isset($response->json()["access_token"])) {
+            return array_merge($response->json(), ["scopes" => $this->listScopes($response)]);
         }
 
         throw new Exception("Erro ao fazer login como cliente!");
@@ -68,6 +69,7 @@ class CallbackApiLoginService
             'client_secret' => env("CLIENT_SECRET"),
             'redirect_uri'  => env("CLIENT_REDIRECT"),
             'code'          => $data["code"],
+            'scope'         => ListScopesPassportService::getList()
         ]);
     }
 
@@ -79,7 +81,7 @@ class CallbackApiLoginService
             'client_secret' => $data['client_secret'],
             'username'      => $data['username'],
             'password'      => $data['password'],
-            'scope'         => '',
+            'scope'         => ListScopesPassportService::getList(),
         ]);
     }
 
@@ -89,7 +91,7 @@ class CallbackApiLoginService
             'grant_type'    => 'client_credentials',
             'client_id'     => $data['client_id'],
             'client_secret' => $data['client_secret'],
-            'scope'         => '',
+            'scope'         => ListScopesPassportService::getList(),
         ]);
     }
 
@@ -113,8 +115,26 @@ class CallbackApiLoginService
         ]);
     }
 
+    private function abilitiesSave(array $listScopes)
+    {
+        $user = request()->user();
+
+        $user->tokens()->delete();
+
+        $user->createToken('integration', array_values($listScopes));
+    }
+
     private function authUser(User $user): void
     {
         Auth::login($user);
+    }
+
+    private function listScopes($response): array
+    {
+        $accessToken  = $response->json()["access_token"];
+        $tokenPayload = explode('.', $accessToken)[1];
+        $tokenPayload = base64_decode($tokenPayload);
+        $tokenData    = json_decode($tokenPayload, true);
+        return $tokenData['scopes'];
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Requests\ApiLogin\GrantAuthorizationCodeRequest;
 use App\Http\Requests\ApiLogin\GrantClientCredentialsRequest;
 use App\Http\Requests\ApiLogin\GrantPasswordRequest;
 use App\Services\CallbackApiLoginService;
+use App\Services\ListScopesPassportService;
 use Exception;
 use Illuminate\Support\Str;
 
@@ -20,7 +21,7 @@ class ApiLoginController extends Controller
             'client_id'     => env("CLIENT_ID"),
             'redirect_uri'  => env("CLIENT_REDIRECT"),
             'response_type' => 'code',
-            'scope'         => '',
+            'scope'         => ListScopesPassportService::getList(),
             'state'         => $state,
         ]);
 
@@ -41,7 +42,8 @@ class ApiLoginController extends Controller
             throw new Exception("Erro ao validar autorização!");
         }
         catch (\Exception $exception) {
-            return back()->with("error", $exception->getMessage());
+            return redirect()->route("login")
+                             ->with("error", $exception->getMessage());
         }
     }
 
@@ -57,7 +59,8 @@ class ApiLoginController extends Controller
             throw new Exception("Erro ao validar autorização!");
         }
         catch (Exception $exception) {
-            return back()->with("error", $exception->getMessage());
+            return redirect()->route("login")
+                             ->with("error", $exception->getMessage());
         }
     }
 
@@ -66,10 +69,10 @@ class ApiLoginController extends Controller
         try {
             $service = new CallbackApiLoginService();
 
-            dd($service->runClientCredentials($request));
+            return response()->json($service->runClientCredentials($request));
         }
         catch (Exception $exception) {
-            return back()->with("error", $exception->getMessage());
+            return response()->json($exception);
         }
     }
 
