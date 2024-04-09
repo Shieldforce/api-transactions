@@ -15,8 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
                   )
                   ->withMiddleware(function (Middleware $middleware) {
                       $middleware->alias([
-                          'abilities' => CheckAbilities::class,
-                          'ability'   => CheckForAnyAbility::class,
+                          'abilities'  => CheckAbilities::class,
+                          'ability'    => CheckForAnyAbility::class,
+                          'canAtLeast' => \Yajra\Acl\Middleware\CanAtLeastMiddleware::class,
+                          'permission' => \Yajra\Acl\Middleware\PermissionMiddleware::class,
+                          'role'       => \Yajra\Acl\Middleware\RoleMiddleware::class,
                       ]);
 
                       $middleware->statefulApi();
