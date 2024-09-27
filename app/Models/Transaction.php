@@ -1,10 +1,13 @@
 <?php
 
 namespace App\Models;
+use EloquentFilter\Filterable;
 use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
+    use Filterable;
+
     protected $fillable = [
         "user_id",
         "description",
@@ -21,6 +24,6 @@ class Transaction extends Model
 
     public function user()
     {
-        return $this->hasOne(User::class);
+        return $this->hasOne(User::class, "id", "user_id");
     }
 }

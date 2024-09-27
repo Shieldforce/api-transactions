@@ -10,6 +10,7 @@
         "laravel/framework": "^11.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "tucker-eric/eloquentfilter": "^3.4",
         "yajra/laravel-acl": "^11",
         "yajra/laravel-datatables": "^11.0",
         "yajra/laravel-datatables-oracle": "^11.0"

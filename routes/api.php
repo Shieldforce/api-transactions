@@ -8,6 +8,8 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:api');
 
-foreach (File::allFiles(__DIR__ . '/api') as $route_file) {
-    require $route_file->getPathname();
-}
+Route::name("api.")->group(function () {
+    foreach (File::allFiles(__DIR__ . '/api') as $route_file) {
+        require $route_file->getPathname();
+    }
+});

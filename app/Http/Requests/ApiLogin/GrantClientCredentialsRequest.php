@@ -24,7 +24,7 @@ class GrantClientCredentialsRequest extends FormRequest
     {
         $this->merge([
             "client_id"     => env("CLIENT_GTCC_ID") ?? null,
-            "client_secret" => env("CLIENT_GTCC_SECRECT") ?? null,
+            "client_secret" => env("CLIENT_GTCC_SECRET") ?? null,
             "base_url"      => env("API_AUTH_URL") ?? null,
         ]);
     }

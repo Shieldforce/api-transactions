@@ -12,6 +12,6 @@ Route::controller(TransactionController::class)
 
     Route::get("/", 'index')
          ->name("index")
-         /*->middleware(["ability:panel.transaction.index"])*/;
+         ->middleware(["ability:panel.transaction.index"]);
 
 });

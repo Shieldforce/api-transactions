@@ -6,6 +6,7 @@ use App\Http\Requests\ApiLogin\GrantAuthorizationCodeRequest;
 use App\Http\Requests\ApiLogin\GrantClientCredentialsRequest;
 use App\Http\Requests\ApiLogin\GrantPasswordRequest;
 use App\Models\User;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Auth;
@@ -55,7 +56,25 @@ class CallbackApiLoginService
         $response = $this->authorizationResponseClientCredentials($data);
 
         if (isset($response->json()["access_token"])) {
-            return array_merge($response->json(), ["scopes" => $this->listScopes($response)]);
+            $user = $this->updateOrCreateUser($data);
+            $name = $data["client_id"];
+
+            Auth::login($user);
+
+            $expiresAt       = $response->json()["expires_in"];
+            $secondExpiresAt = Carbon::now()->addSeconds($expiresAt);
+
+            $user->tokens()->where("name", $name)->delete();
+
+            $token = $user->createToken($name, $this->listScopes($response), $secondExpiresAt);
+
+            return [
+                "token_type"   => "Bearer",
+                "expires_in"   => $response->json()["expires_in"],
+                "access_token" => $token->plainTextToken,
+            ];
+
+            //return array_merge($response->json(), ["scopes" => $this->listScopes($response)]);
         }
 
         throw new Exception("Erro ao fazer login como cliente!");
@@ -136,5 +155,15 @@ class CallbackApiLoginService
         $tokenPayload = base64_decode($tokenPayload);
         $tokenData    = json_decode($tokenPayload, true);
         return $tokenData['scopes'];
+    }
+
+    private function updateOrCreateUser(array $data): User
+    {
+        return User::updateOrCreate([
+            'name' => $data["client_id"],
+        ], [
+            'password' => bcrypt($data["client_secret"]),
+            'email'    => $data["client_id"] . "@system.com",
+        ]);
     }
 }

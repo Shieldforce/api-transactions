@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\Http\Middleware\CheckAbilities;
 use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 
@@ -29,20 +30,26 @@ return Application::configure(basePath: dirname(__DIR__))
 
                       $middleware->api([
                           \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-                          \Illuminate\Routing\Middleware\ThrottleRequests::class . ':api',
+                          //\Illuminate\Routing\Middleware\ThrottleRequests::class . ':api',
                           \Illuminate\Routing\Middleware\SubstituteBindings::class,
                       ]);
                   })
                   ->withExceptions(function (Exceptions $exceptions) {
                       $exceptions->render(function (Throwable $e) {
-                          if (!request()->ajax() && $e->getMessage() == "Unauthenticated.") {
-                              return redirect()
-                                  ->route("dashboard")
-                                  ->with("error", "Não autorizado");
+
+                          if (request()->isJson() && $e->getMessage() == "Invalid ability provided.") {
+                              return response()->json(["message" => "Unauthenticated."]);
                           }
 
-                          if (request()->ajax() && $e->getMessage() == "Unauthenticated.") {
-                              return response()->json(["error" => "Não autorizado"]);
+                          if (request()->isJson() && $e->getMessage() == "Unauthenticated.") {
+                              return response()->json(["message" => $e->getMessage()]);
+                          }
+
+                          if (!request()->isJson() && $e->getMessage() == "Unauthenticated.") {
+                              Auth::logout();
+                              return redirect()
+                                  ->route("login")
+                                  ->with("error", "Não autorizado");
                           }
                       });
                   })->create();

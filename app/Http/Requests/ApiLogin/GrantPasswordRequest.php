@@ -28,7 +28,7 @@ class GrantPasswordRequest extends FormRequest
         $this->merge([
             "username"      => $this->email ?? null,
             "client_id"     => env("CLIENT_GTP_ID") ?? null,
-            "client_secret" => env("CLIENT_GTP_SECRECT") ?? null,
+            "client_secret" => env("CLIENT_GTP_SECRET") ?? null,
             "base_url"      => env("API_AUTH_URL") ?? null,
         ]);
     }
